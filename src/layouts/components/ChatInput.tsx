@@ -6,6 +6,8 @@ import Cookies from 'js-cookie';
 import useSWR from 'swr';
 import Button from '@/shortcodes/Button';
 import { RiRefreshLine } from 'react-icons/ri';
+import { RiSlideshow2Line } from "react-icons/ri";
+
 
 const ChatInput: React.FC = () => {
   const [newMessage, setNewMessage] = useState<string>('');
@@ -14,10 +16,10 @@ const ChatInput: React.FC = () => {
   const [session, setSession] = useState<string | null>(null);
 
   useEffect(() => {
-    //let userId = Cookies.get('user') || localStorage.getItem('user');
-    //let session = Cookies.get('session') || localStorage.getItem('session');
-    let userId = "31b35056-4f4a-4d04-a64a-b6ab7c1b46e0"
-    let session = "0e63373e-6aff-4545-a08b-0da963945a4d"
+    let userId = Cookies.get('user') || localStorage.getItem('user');
+    let session = Cookies.get('session') || localStorage.getItem('session');
+    //let userId = "31b35056-4f4a-4d04-a64a-b6ab7c1b46e0"
+    //let session = "0e63373e-6aff-4545-a08b-0da963945a4d"
 
     if (!userId || !session) {
       userId = uuidv4();
@@ -68,6 +70,30 @@ const ChatInput: React.FC = () => {
     localStorage.setItem('session', newSession);
   };
 
+
+  //summary
+  const summary = async (e: React.FormEvent) => {
+    e.preventDefault();
+  
+    try {
+      const userId = Cookies.get('user');
+      const session = Cookies.get('session');
+  
+      const response = await axios.get("http://localhost:8000/summary/", {
+        params: {
+            user: userId,
+            session: session
+        }
+    });
+  
+      console.log('Success:', response.data);  // Handle the response as needed
+    } catch (error) {
+      console.error('Error posting summary:', error);
+      // Optionally, handle different types of errors (e.g., network error, server error)
+    }
+  };
+  
+
   const renderMessages = () => {
     if (!messages) return null; // Handle case when messages are not yet fetched
     return messages.map((message: { role: string; message: string }, index: number) => (
@@ -81,13 +107,15 @@ const ChatInput: React.FC = () => {
       </div>
     ));
   };
-
   return (
-    <div className=" m-2 flex flex-col h-5/6 w-full border border-gray-300 rounded-lg dark:border-gray-500 shadow-md">
-      <div className="flex-grow overflow-y-auto p-4 drop-shadow-md" ref={messageContainerRef}>
-        <div className="flex items-center gap-4  bg-opacity-90 rounded-lg  ">
+    <div className="m-2 flex flex-col h-full w-full border border-gray-300 rounded-lg dark:border-gray-500 shadow-md">
+      <div className="flex-grow overflow-y-auto p-4 drop-shadow-md" ref={messageContainerRef} style={{ maxHeight: '80vh' }}>
+        <div className="flex items-center gap-4 bg-opacity-90 rounded-lg">
           <h1 className="text-2xl font-bold tracking-tighter text-gray-800">Gen Cad assistant</h1>
-          <button onClick={expireSession} className="ml-auto bg-white bg-opacity-50 hover:bg-opacity-75 text-gray-800 rounded-full p-2">
+          <button
+            onClick={expireSession}
+            className="ml-auto bg-white bg-opacity-50 hover:bg-opacity-75 text-gray-800 rounded-full p-2"
+          >
             <RiRefreshLine className="h-8 w-8 text-gray-800" />
             <span className="sr-only">Actualiser</span>
           </button>
@@ -97,7 +125,10 @@ const ChatInput: React.FC = () => {
         </div>
       </div>
       <div className="sticky bottom-0">
-        <form onSubmit={sendMessage} className="flex justify-between items-center  p-2 rounded-lg">
+        <form
+          onSubmit={sendMessage}
+          className="flex justify-between items-center p-2 rounded-lg"
+        >
           <input
             type="text"
             value={newMessage}
@@ -105,11 +136,17 @@ const ChatInput: React.FC = () => {
             placeholder="Type your message..."
             className="flex-grow mr-2 p-2 rounded-md border border-gray-300 focus:outline-none focus:border-blue-500"
           />
-          <button type="submit" className=" hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 text-white px-4 py-2 rounded-md transition-colors duration-300 ease-in-out">Send</button>
+          <button
+            type="submit"
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+          >
+            Send
+          </button>
         </form>
       </div>
     </div>
   );
+
 };
 
 export default ChatInput;
